@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>maptalks.E4layer Demo: Bus lines</title>
+    <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css">
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 960px;
+            height: 600px;
+        }
+    </style>
+    <script type="text/javascript" src="./../node_modules/echarts/dist/echarts.js"></script>
+    <script type="text/javascript" src="./../node_modules/echarts-gl/dist/echarts-gl.js"></script>
+    <script type="text/javascript" src="./../node_modules/maptalks/dist/maptalks.js"></script>
+    <script type="text/javascript" src="./../dist/maptalks.e4.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        
+        var map = new maptalks.Map("map", {
+            center: [116.28245, 39.92121],
+            zoom: 9,
+            attributionControl: {
+                'content': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            },
+            baseLayer: new maptalks.TileLayer('tile', {
+                'urlTemplate': 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
+                'subdomains': ['a', 'b', 'c', 'd']
+            })
+        });
+
+        function createNodes(widthCount, heightCount) {
+            var nodes = [];
+            for (var i = 0; i < widthCount; i++) {
+                for (var j = 0; j < heightCount; j++) {
+                    nodes.push({
+                        x: Math.random() * window.innerWidth,
+                        y: Math.random() * window.innerHeight,
+                        value: 1
+                    });
+                }
+            }
+            return nodes;
+        }
+
+        function createEdges(widthCount, heightCount) {
+            var edges = [];
+            for (var i = 0; i < widthCount; i++) {
+                for (var j = 0; j < heightCount; j++) {
+                    if (i < widthCount - 1) {
+                        edges.push({
+                            source: i + j * widthCount,
+                            target: i + 1 + j * widthCount,
+                            value: 1
+                        });
+                    }
+                    if (j < heightCount - 1) {
+                        edges.push({
+                            source: i + j * widthCount,
+                            target: i + (j + 1) * widthCount,
+                            value: 1
+                        });
+                    }
+                }
+            }
+            return edges;
+        }
+
+        var nodes = createNodes(50, 50);
+
+        var edges = createEdges(50, 50);
+
+        ecOption = {
+            series: [{
+                type: 'graphGL',
+                nodes: nodes,
+                edges: edges,
+                itemStyle: {
+                    color: 'rgba(255,255,255,0.8)'
+                },
+                lineStyle: {
+                    color: 'rgba(255,255,255,0.8)',
+                    width: 3
+                },
+                forceAtlas2: {
+                    steps: 5,
+                    jitterTolerence: 10,
+                    edgeWeightInfluence: 4
+                }
+            }]
+        };
+
+        var e4Layer = new maptalks.E4Layer('e4', ecOption, { hideOnZooming: true, hideOnRotating: true, hideOnMoving: true }).addTo(map);
+
+    </script>
+</body>
+
+</html>
