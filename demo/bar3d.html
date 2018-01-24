@@ -27,8 +27,8 @@
     <script>
         
         var map = new maptalks.Map("map", {
-            center: [116.28245, 39.92121],
-            zoom: 9,
+            center: [104.114129, 37.550339],
+            zoom: 3,
             attributionControl: {
                 'content': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
             },
@@ -37,6 +37,9 @@
                 'subdomains': ['a', 'b', 'c', 'd']
             })
         });
+
+        //map.setPitch(50);
+        //map.setBearing(-10);
 
         $.getJSON('./assets/population.json', function (data) {
             data = data.filter(function (dataItem) {
@@ -59,10 +62,6 @@
                     }
                 },
                 maptalks3D: {
-                    center: [104.114129, 37.550339],
-                    zoom: 3,
-                    pitch: 50,
-                    bearing: -10,
                     style: 'mapbox://styles/mapbox/light-v9',
                     boxHeight: 50,
                     // altitudeScale: 1e2,
@@ -91,7 +90,6 @@
                 },
                 series: [{
                     type: 'bar3D',
-                    coordinateSystem: 'maptalks3D',
                     shading: 'lambert',
                     minHeight: 0.1,
                     barSize: 0.1,

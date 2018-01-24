@@ -3,8 +3,8 @@
  * LICENSE : ISC
  * (c) 2016-2018 maptalks.org
  */
-import { Coordinate, DomUtil, Layer, Util } from 'maptalks';
-import { graphic, init, matrix, registerCoordinateSystem } from 'echarts';
+import { DomUtil, Layer } from 'maptalks';
+import { init } from 'echarts';
 import 'echarts-gl';
 
 function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
@@ -68,7 +68,7 @@ var E4Layer = function (_maptalks$Layer) {
 
 E4Layer.mergeOptions(options);
 
-E4Layer.registerJSONType('E3Layer');
+E4Layer.registerJSONType('E4Layer');
 
 E4Layer.registerRenderer('dom', function () {
     function _class(layer) {
@@ -81,13 +81,17 @@ E4Layer.registerRenderer('dom', function () {
         if (!this._container) {
             this._createLayerContainer();
         }
+
         if (!this._ec) {
             this._ec = init(this._container);
             this._prepareECharts();
             this._ec.setOption(this.layer._ecOptions, false);
+            this._coordSysMgr = this._ec._coordSysMgr;
+            this._maptalks3D = this._coordSysMgr._coordinateSystems[0];
         } else if (this._isVisible()) {
-            this._ec.resize();
-        }
+                this._ec.resize();
+            }
+
         this.layer.fire('layerload');
     };
 
@@ -146,15 +150,22 @@ E4Layer.registerRenderer('dom', function () {
     };
 
     _class.prototype._prepareECharts = function _prepareECharts() {
-        if (!this._registered) {
-            this._coordSystemName = 'maptalks' + Util.GUID();
-            registerCoordinateSystem(this._coordSystemName, this._getE3CoordinateSystem(this.getMap()));
-            this._registered = true;
-        }
+        var ecOptions = this.layer._ecOptions,
+            map = this.getMap(),
+            center = map.getCenter(),
+            zoom = map.getZoom(),
+            pitch = map.getPitch(),
+            bearing = map.getBearing();
+
+        ecOptions.maptalks3D.center = [center.x, center.y];
+        ecOptions.maptalks3D.zoom = zoom;
+        ecOptions.maptalks3D.pitch = pitch;
+        ecOptions.maptalks3D.bearing = bearing;
+
         var series = this.layer._ecOptions.series;
         if (series) {
             for (var i = series.length - 1; i >= 0; i--) {
-                series[i]['coordinateSystem'] = series[i]['coordinateSystem'] || this._coordSystemName;
+                series[i]['coordinateSystem'] = 'maptalks3D';
 
                 series[i]['animation'] = false;
             }
@@ -181,61 +192,8 @@ E4Layer.registerRenderer('dom', function () {
 
     _class.prototype._resetContainer = function _resetContainer() {
         var size = this.getMap().getSize();
-
         this._container.style.width = size.width + 'px';
         this._container.style.height = size.height + 'px';
-    };
-
-    _class.prototype._getE3CoordinateSystem = function _getE3CoordinateSystem(map) {
-        var CoordSystem = function CoordSystem(map) {
-            this.map = map;
-            this._mapOffset = [0, 0];
-        };
-        var me = this;
-        CoordSystem.create = function (ecModel) {
-            ecModel.eachSeries(function (seriesModel) {
-                if (seriesModel.get('coordinateSystem') === me._coordSystemName) {
-                    seriesModel.coordinateSystem = new CoordSystem(map);
-                }
-            });
-        };
-
-        CoordSystem.getDimensionsInfo = function () {
-            return ['x', 'y'];
-        };
-
-        CoordSystem.dimensions = ['x', 'y'];
-
-        Util.extend(CoordSystem.prototype, {
-            dimensions: ['x', 'y'],
-
-            setMapOffset: function setMapOffset(mapOffset) {
-                this._mapOffset = mapOffset;
-            },
-            dataToPoint: function dataToPoint(data) {
-                var coord = new Coordinate(data);
-                var px = this.map.coordinateToContainerPoint(coord);
-                var mapOffset = this._mapOffset;
-                return [px.x - mapOffset[0], px.y - mapOffset[1]];
-            },
-            pointToData: function pointToData(pt) {
-                var mapOffset = this._mapOffset;
-                var data = this.map.containerPointToCoordinate({
-                    x: pt[0] + mapOffset[0],
-                    y: pt[1] + mapOffset[1]
-                });
-                return [data.x, data.y];
-            },
-            getViewRect: function getViewRect() {
-                var size = this.map.getSize();
-                return new graphic.BoundingRect(0, 0, size.width, size.height);
-            },
-            getRoamTransform: function getRoamTransform() {
-                return matrix.create();
-            }
-        });
-
-        return CoordSystem;
     };
 
     _class.prototype.getEvents = function getEvents() {
@@ -254,10 +212,17 @@ E4Layer.registerRenderer('dom', function () {
         if (this._container && this._container.style.display === 'none') {
             return;
         }
-        this._ec.clear();
-        this._ec.resize();
-        this._prepareECharts();
-        this._ec.setOption(this.layer._ecOptions, false);
+
+        var map = this.getMap(),
+            center = map.getCenter(),
+            zoom = map.getZoom(),
+            pitch = map.getPitch(),
+            bearing = map.getBearing();
+        var ecMaptalks = this._maptalks3D.model.getMaptalks();
+        ecMaptalks.setCenter([center.x, center.y]);
+        ecMaptalks.setZoom(zoom);
+        ecMaptalks.setPitch(pitch);
+        ecMaptalks.setBearing(bearing);
     };
 
     _class.prototype.onZoomStart = function onZoomStart() {
