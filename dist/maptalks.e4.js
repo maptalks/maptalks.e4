@@ -37,10 +37,40 @@ var E4Layer = function (_maptalks$Layer) {
         return _this;
     }
 
+    E4Layer.prototype.getEChartsOption = function getEChartsOption() {
+        return this._ecOptions;
+    };
+
+    E4Layer.prototype.setEChartsOption = function setEChartsOption(ecOption) {
+        this._ecOptions = ecOption;
+        if (this._getRenderer()) {
+            this._getRenderer()._clearAndRedraw();
+        }
+        return this;
+    };
+
+    E4Layer.prototype.toJSON = function toJSON() {
+        return {
+            'type': this.getJSONType(),
+            'id': this.getId(),
+            'ecOptions': this._ecOptions,
+            'options': this.config()
+        };
+    };
+
+    E4Layer.fromJSON = function fromJSON(json) {
+        if (!json || json['type'] !== 'E3Layer') {
+            return null;
+        }
+        return new E4Layer(json['id'], json['ecOptions'], json['options']);
+    };
+
     return E4Layer;
 }(maptalks.Layer);
 
 E4Layer.mergeOptions(options);
+
+E4Layer.registerJSONType('E3Layer');
 
 E4Layer.registerRenderer('dom', function () {
     function _class(layer) {
@@ -49,14 +79,61 @@ E4Layer.registerRenderer('dom', function () {
         this.layer = layer;
     }
 
-    _class.prototype._resetContainer = function _resetContainer() {
-        var size = this.getMap().getSize();
-        this._container.style.width = size.width + 'px';
-        this._container.style.height = size.height + 'px';
+    _class.prototype.render = function render() {
+        if (!this._container) {
+            this._createLayerContainer();
+        }
+        if (!this._ec) {
+            this._ec = echarts.init(this._container);
+            this._prepareECharts();
+            this._ec.setOption(this.layer._ecOptions, false);
+        } else if (this._isVisible()) {
+            this._ec.resize();
+        }
+        this.layer.fire('layerload');
     };
 
-    _class.prototype.isCanvasRender = function isCanvasRender() {
-        return false;
+    _class.prototype.drawOnInteracting = function drawOnInteracting() {
+        if (this._isVisible()) {
+            this._ec.resize();
+        }
+    };
+
+    _class.prototype.needToRedraw = function needToRedraw() {
+        var map = this.getMap();
+        var renderer = map._getRenderer();
+        return map.isInteracting() || renderer && (renderer.isStateChanged && renderer.isStateChanged() || renderer.isViewChanged && renderer.isViewChanged());
+    };
+
+    _class.prototype.getMap = function getMap() {
+        return this.layer.getMap();
+    };
+
+    _class.prototype._isVisible = function _isVisible() {
+        return this._container && this._container.style.display === '';
+    };
+
+    _class.prototype.show = function show() {
+        if (this._container) {
+            this._container.style.display = '';
+        }
+    };
+
+    _class.prototype.hide = function hide() {
+        if (this._container) {
+            this._container.style.display = 'none';
+        }
+    };
+
+    _class.prototype.remove = function remove() {
+        this._ec.clear();
+        this._ec.dispose();
+        delete this._ec;
+        this._removeLayerContainer();
+    };
+
+    _class.prototype.clear = function clear() {
+        this._ec.clear();
     };
 
     _class.prototype.setZIndex = function setZIndex(z) {
@@ -66,18 +143,24 @@ E4Layer.registerRenderer('dom', function () {
         }
     };
 
-    _class.prototype.getMap = function getMap() {
-        return this.layer.getMap();
+    _class.prototype.isCanvasRender = function isCanvasRender() {
+        return false;
     };
 
-    _class.prototype.render = function render() {
-        if (!this._container) this._createLayerContainer();
+    _class.prototype._prepareECharts = function _prepareECharts() {
+        if (!this._registered) {
+            this._coordSystemName = 'maptalks' + maptalks.Util.GUID();
+            echarts.registerCoordinateSystem(this._coordSystemName, this._getE3CoordinateSystem(this.getMap()));
+            this._registered = true;
+        }
+        var series = this.layer._ecOptions.series;
+        if (series) {
+            for (var i = series.length - 1; i >= 0; i--) {
+                series[i]['coordinateSystem'] = series[i]['coordinateSystem'] || this._coordSystemName;
 
-        if (!this._ec) this._createEcharts();
-
-        this._ec.setOption(this.layer._ecOptions, false);
-
-        this.layer.fire('layerload');
+                series[i]['animation'] = false;
+            }
+        }
     };
 
     _class.prototype._createLayerContainer = function _createLayerContainer() {
@@ -91,8 +174,18 @@ E4Layer.registerRenderer('dom', function () {
         parentContainer.appendChild(container);
     };
 
-    _class.prototype._createEcharts = function _createEcharts() {
-        var ec = this._ec = echarts.init(this._container);
+    _class.prototype._removeLayerContainer = function _removeLayerContainer() {
+        if (this._container) {
+            maptalks.DomUtil.removeDomNode(this._container);
+        }
+        delete this._levelContainers;
+    };
+
+    _class.prototype._resetContainer = function _resetContainer() {
+        var size = this.getMap().getSize();
+
+        this._container.style.width = size.width + 'px';
+        this._container.style.height = size.height + 'px';
     };
 
     _class.prototype._getE3CoordinateSystem = function _getE3CoordinateSystem(map) {
@@ -108,12 +201,16 @@ E4Layer.registerRenderer('dom', function () {
                 }
             });
         };
+
         CoordSystem.getDimensionsInfo = function () {
             return ['x', 'y'];
         };
+
         CoordSystem.dimensions = ['x', 'y'];
+
         maptalks.Util.extend(CoordSystem.prototype, {
             dimensions: ['x', 'y'],
+
             setMapOffset: function setMapOffset(mapOffset) {
                 this._mapOffset = mapOffset;
             },
@@ -143,12 +240,71 @@ E4Layer.registerRenderer('dom', function () {
         return CoordSystem;
     };
 
-    _class.prototype._monitorSeries = function _monitorSeries(series) {
-        for (var i = series.length - 1; i >= 0; i--) {
-            series[i]['coordinateSystem'] = 'maptalks3D';
+    _class.prototype.getEvents = function getEvents() {
+        return {
+            '_zoomstart': this.onZoomStart,
+            '_zoomend': this.onZoomEnd,
+            '_dragrotatestart': this.onDragRotateStart,
+            '_dragrotateend': this.onDragRotateEnd,
+            '_movestart': this.onMoveStart,
+            '_moveend': this.onMoveEnd,
+            '_resize': this._resetContainer
+        };
+    };
 
-            series[i]['animation'] = false;
+    _class.prototype._clearAndRedraw = function _clearAndRedraw() {
+        if (this._container && this._container.style.display === 'none') {
+            return;
         }
+        this._ec.clear();
+        this._ec.resize();
+        this._prepareECharts();
+        this._ec.setOption(this.layer._ecOptions, false);
+    };
+
+    _class.prototype.onZoomStart = function onZoomStart() {
+        if (!this.layer.options['hideOnZooming']) {
+            return;
+        }
+        this.hide();
+    };
+
+    _class.prototype.onZoomEnd = function onZoomEnd() {
+        if (!this.layer.options['hideOnZooming']) {
+            return;
+        }
+        this.show();
+        this._clearAndRedraw();
+    };
+
+    _class.prototype.onDragRotateStart = function onDragRotateStart() {
+        if (!this.layer.options['hideOnRotating']) {
+            return;
+        }
+        this.hide();
+    };
+
+    _class.prototype.onDragRotateEnd = function onDragRotateEnd() {
+        if (!this.layer.options['hideOnRotating']) {
+            return;
+        }
+        this.show();
+        this._clearAndRedraw();
+    };
+
+    _class.prototype.onMoveStart = function onMoveStart() {
+        if (!this.layer.options['hideOnMoving']) {
+            return;
+        }
+        this.hide();
+    };
+
+    _class.prototype.onMoveEnd = function onMoveEnd() {
+        if (!this.layer.options['hideOnMoving']) {
+            return;
+        }
+        this.show();
+        this._clearAndRedraw();
     };
 
     return _class;
