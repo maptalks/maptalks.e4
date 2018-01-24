@@ -4,7 +4,7 @@
  * (c) 2016-2018 maptalks.org
  */
 import { Coordinate, DomUtil, Layer, Util } from 'maptalks';
-import { graphic, init, matrix, registerCoordinateSystem } from 'echarts';
+import { graphic, init, matrix } from 'echarts';
 import 'echarts-gl';
 
 function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
@@ -91,13 +91,6 @@ E4Layer.registerRenderer('dom', function () {
 
     _class.prototype._createEcharts = function _createEcharts() {
         var ec = this._ec = init(this._container);
-
-        this._coordSystemName = 'maptalks' + Util.GUID();
-
-        registerCoordinateSystem(this._coordSystemName, this._getE3CoordinateSystem(this.getMap()));
-
-        var series = this.layer._ecOptions.series;
-        series ? this._monitorSeries(series) : null;
     };
 
     _class.prototype._getE3CoordinateSystem = function _getE3CoordinateSystem(map) {
@@ -113,16 +106,12 @@ E4Layer.registerRenderer('dom', function () {
                 }
             });
         };
-
         CoordSystem.getDimensionsInfo = function () {
             return ['x', 'y'];
         };
-
         CoordSystem.dimensions = ['x', 'y'];
-
         Util.extend(CoordSystem.prototype, {
             dimensions: ['x', 'y'],
-
             setMapOffset: function setMapOffset(mapOffset) {
                 this._mapOffset = mapOffset;
             },
@@ -154,7 +143,7 @@ E4Layer.registerRenderer('dom', function () {
 
     _class.prototype._monitorSeries = function _monitorSeries(series) {
         for (var i = series.length - 1; i >= 0; i--) {
-            series[i]['coordinateSystem'] = this._coordSystemName;
+            series[i]['coordinateSystem'] = 'maptalks3D';
 
             series[i]['animation'] = false;
         }

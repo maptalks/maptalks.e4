@@ -99,7 +99,7 @@ E4Layer.registerRenderer('dom', class {
         const series = this.layer._ecOptions.series;
         series?this._monitorSeries(series):null;
     }
-        /**
+    /**
      * Coordinate System for echarts 3
      * based on echarts's bmap plugin
      * https://github.com/ecomfe/echarts/blob/f383dcc1adb4c7b9e1888bda3fc976561a788020/extension/bmap/BMapCoordSys.js
@@ -117,27 +117,21 @@ E4Layer.registerRenderer('dom', class {
                 }
             });
         };
-
         CoordSystem.getDimensionsInfo = function () {
             return ['x', 'y'];
         };
-
         CoordSystem.dimensions = ['x', 'y'];
-
         maptalks.Util.extend(CoordSystem.prototype, {
             dimensions : ['x', 'y'],
-
             setMapOffset(mapOffset) {
                 this._mapOffset = mapOffset;
             },
-
             dataToPoint(data) {
                 const coord = new maptalks.Coordinate(data);
                 const px = this.map.coordinateToContainerPoint(coord);
                 const mapOffset = this._mapOffset;
                 return [px.x - mapOffset[0], px.y - mapOffset[1]];
             },
-
             pointToData(pt) {
                 const mapOffset = this._mapOffset;
                 const data = this.map.containerPointToCoordinate({
@@ -146,12 +140,10 @@ E4Layer.registerRenderer('dom', class {
                 });
                 return [data.x, data.y];
             },
-
             getViewRect() {
                 const size = this.map.getSize();
                 return new echarts.graphic.BoundingRect(0, 0, size.width, size.height);
             },
-
             getRoamTransform() {
                 return echarts.matrix.create();
             }
@@ -165,7 +157,8 @@ E4Layer.registerRenderer('dom', class {
     _monitorSeries(series) {
         for (let i = series.length - 1; i >= 0; i--) {
             //change coordinateSystem to maptalks
-            series[i]['coordinateSystem'] = this._coordSystemName;
+            //series[i]['coordinateSystem'] = this._coordSystemName;
+            series[i]['coordinateSystem'] = 'maptalks3D';
             //disable update animations
             series[i]['animation'] = false;
         }
