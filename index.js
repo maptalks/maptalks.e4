@@ -78,8 +78,7 @@ E4Layer.registerRenderer('dom', class {
             this._ec = echarts.init(this._container);
             this._prepareECharts();
             this._ec.setOption(this.layer._ecOptions, false);
-            this._coordSysMgr = this._ec._coordSysMgr;
-            this._maptalks3D = this._coordSysMgr._coordinateSystems[0];
+            this._ecMaptalks = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
         }
         //resize 
         else if (this._isVisible()) {
@@ -90,9 +89,9 @@ E4Layer.registerRenderer('dom', class {
     }
 
     drawOnInteracting() {
-        if (this._isVisible()) {
-            this._ec.resize();
-        }
+            if (this._isVisible()) {
+                this._clearAndRedraw();
+            }
     }
 
     needToRedraw() {
@@ -215,7 +214,7 @@ E4Layer.registerRenderer('dom', class {
           zoom = map.getZoom(),
           pitch = map.getPitch(),
           bearing = map.getBearing();
-        const ecMaptalks = this._maptalks3D.model.getMaptalks();
+        const ecMaptalks = this._ecMaptalks;
         ecMaptalks.setCenter([center.x,center.y]);
         ecMaptalks.setZoom(zoom);
         ecMaptalks.setPitch(pitch);

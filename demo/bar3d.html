@@ -32,9 +32,13 @@
             attributionControl: {
                 'content': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
             },
-            baseLayer: new maptalks.TileLayer('tile', {
-                'urlTemplate': 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
-                'subdomains': ['a', 'b', 'c', 'd']
+            baseLayer: new maptalks.WMSTileLayer('wmsl', {
+                'urlTemplate': 'http://117.36.75.134:6080/arcgis/services/LT/canyin/MapServer/WMSServer?request=GetCapabilities&service=WMS',
+                'layers': 'canyin',
+                'version': '1.3.0',
+                'format': 'image/png',
+                'transparent': true,
+                'renderer': 'canvas',
             })
         });
 
@@ -62,7 +66,6 @@
                     }
                 },
                 maptalks3D: {
-                    style: 'mapbox://styles/mapbox/light-v9',
                     boxHeight: 50,
                     // altitudeScale: 1e2,
                     postEffect: {
@@ -81,15 +84,11 @@
                         ambient: {
                             intensity: 0.
                         }
-                        //ambientCubemap: {
-                        //    texture: 'assets/canyon.hdr',
-                        //    exposure: 2,
-                        //    diffuseIntensity: 0.5
-                        //}
                     }
                 },
                 series: [{
                     type: 'bar3D',
+                    coordinateSystem: 'maptalks3D',
                     shading: 'lambert',
                     minHeight: 0.1,
                     barSize: 0.1,
@@ -99,7 +98,7 @@
                 }]
             };
 
-            var e4Layer = new maptalks.E4Layer('e4', ecOption, { hideOnZooming: true, hideOnRotating: true, hideOnMoving: true }).addTo(map);
+            var e4Layer = new maptalks.E4Layer('e4', ecOption, { hideOnZooming: false, hideOnRotating: false, hideOnMoving: false }).addTo(map);
 
         });
 

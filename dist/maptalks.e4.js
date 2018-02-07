@@ -88,8 +88,7 @@ E4Layer.registerRenderer('dom', function () {
             this._ec = echarts.init(this._container);
             this._prepareECharts();
             this._ec.setOption(this.layer._ecOptions, false);
-            this._coordSysMgr = this._ec._coordSysMgr;
-            this._maptalks3D = this._coordSysMgr._coordinateSystems[0];
+            this._ecMaptalks = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
         } else if (this._isVisible()) {
                 this._ec.resize();
             }
@@ -99,7 +98,7 @@ E4Layer.registerRenderer('dom', function () {
 
     _class.prototype.drawOnInteracting = function drawOnInteracting() {
         if (this._isVisible()) {
-            this._ec.resize();
+            this._clearAndRedraw();
         }
     };
 
@@ -220,7 +219,7 @@ E4Layer.registerRenderer('dom', function () {
             zoom = map.getZoom(),
             pitch = map.getPitch(),
             bearing = map.getBearing();
-        var ecMaptalks = this._maptalks3D.model.getMaptalks();
+        var ecMaptalks = this._ecMaptalks;
         ecMaptalks.setCenter([center.x, center.y]);
         ecMaptalks.setZoom(zoom);
         ecMaptalks.setPitch(pitch);
