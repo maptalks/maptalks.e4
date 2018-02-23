@@ -31,17 +31,21 @@
             zoom: 3,
             attributionControl: {
                 'content': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            },
-            baseLayer: new maptalks.WMSTileLayer('wmsl', {
-                'urlTemplate': 'http://117.36.75.134:6080/arcgis/services/LT/canyin/MapServer/WMSServer?request=GetCapabilities&service=WMS',
-                'layers': 'canyin',
-                'version': '1.3.0',
-                'format': 'image/png',
-                'transparent': true,
-                'renderer': 'canvas',
-            })
+            }
         });
 
+        //var wmslayer = new maptalks.WMSTileLayer('wmsl', {
+        //    'urlTemplate': 'http://117.36.75.134:6080/arcgis/services/LT/canyin/MapServer/WMSServer?request=GetCapabilities&service=WMS',
+        //    'layers': 'canyin',
+        //    'version': '1.3.0',
+        //    'format': 'image/png',
+        //    'transparent': true,
+        //    'renderer': 'canvas',
+        //});
+        var wmslayer = new maptalks.TileLayer('base', {
+            'urlTemplate': 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
+            'subdomains': ['a', 'b', 'c', 'd']
+        });
         //map.setPitch(50);
         //map.setBearing(-10);
 
@@ -98,7 +102,7 @@
                 }]
             };
 
-            var e4Layer = new maptalks.E4Layer('e4', ecOption, { hideOnZooming: false, hideOnRotating: false, hideOnMoving: false }).addTo(map);
+            var e4Layer = new maptalks.E4Layer('e4', ecOption, { hideOnZooming: false, hideOnRotating: false, hideOnMoving: false }, wmslayer).addTo(map);
 
         });
 

@@ -29,16 +29,23 @@ var E4Layer = function (_maptalks$Layer) {
     _inherits(E4Layer, _maptalks$Layer);
 
     function E4Layer(id, ecOptions, options) {
+        var maptalksLayer = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+
         _classCallCheck(this, E4Layer);
 
         var _this = _possibleConstructorReturn(this, _maptalks$Layer.call(this, id, options));
 
         _this._ecOptions = ecOptions;
+        _this._maptalksLayer = maptalksLayer;
         return _this;
     }
 
     E4Layer.prototype.getEChartsOption = function getEChartsOption() {
         return this._ecOptions;
+    };
+
+    E4Layer.prototype.getAdditionalLayer = function getAdditionalLayer() {
+        return this._maptalksLayer;
     };
 
     E4Layer.prototype.setEChartsOption = function setEChartsOption(ecOption) {
@@ -89,6 +96,10 @@ E4Layer.registerRenderer('dom', function () {
             this._prepareECharts();
             this._ec.setOption(this.layer._ecOptions, false);
             this._ecMaptalks = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
+            var _additionalLayer = this.layer.getAdditionalLayer();
+            if (_additionalLayer) {
+                this._ecMaptalks.addLayer(_additionalLayer);
+            }
         } else if (this._isVisible()) {
                 this._ec.resize();
             }

@@ -14,13 +14,18 @@ const options = {
 
 export class E4Layer extends maptalks.Layer {
 
-    constructor(id, ecOptions, options) {
+    constructor(id, ecOptions, options, maptalksLayer = null) {
         super(id, options);
         this._ecOptions = ecOptions;
+        this._maptalksLayer = maptalksLayer;
     }
 
     getEChartsOption() {
         return this._ecOptions;
+    }
+    
+    getAdditionalLayer(){
+        return this._maptalksLayer;
     }
 
     setEChartsOption(ecOption) {
@@ -37,10 +42,10 @@ export class E4Layer extends maptalks.Layer {
      */
     toJSON() {
         return {
-            'type'      : this.getJSONType(),
-            'id'        : this.getId(),
-            'ecOptions' : this._ecOptions,
-            'options'   : this.config()
+            'type': this.getJSONType(),
+            'id': this.getId(),
+            'ecOptions': this._ecOptions,
+            'options': this.config()
         };
     }
 
@@ -79,6 +84,10 @@ E4Layer.registerRenderer('dom', class {
             this._prepareECharts();
             this._ec.setOption(this.layer._ecOptions, false);
             this._ecMaptalks = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
+            const _additionalLayer = this.layer.getAdditionalLayer();
+            if(_additionalLayer){
+                this._ecMaptalks.addLayer(_additionalLayer);
+            } 
         }
         //resize 
         else if (this._isVisible()) {
@@ -89,9 +98,9 @@ E4Layer.registerRenderer('dom', class {
     }
 
     drawOnInteracting() {
-            if (this._isVisible()) {
-                this._clearAndRedraw();
-            }
+        if (this._isVisible()) {
+            this._clearAndRedraw();
+        }
     }
 
     needToRedraw() {
@@ -152,7 +161,7 @@ E4Layer.registerRenderer('dom', class {
             pitch = map.getPitch(),
             bearing = map.getBearing();
         //modify view
-        ecOptions.maptalks3D.center = [center.x,center.y];
+        ecOptions.maptalks3D.center = [center.x, center.y];
         ecOptions.maptalks3D.zoom = zoom;
         ecOptions.maptalks3D.pitch = pitch;
         ecOptions.maptalks3D.bearing = bearing;
@@ -194,13 +203,13 @@ E4Layer.registerRenderer('dom', class {
 
     getEvents() {
         return {
-            '_zoomstart' : this.onZoomStart,
-            '_zoomend'   : this.onZoomEnd,
-            '_dragrotatestart' : this.onDragRotateStart,
-            '_dragrotateend'   : this.onDragRotateEnd,
-            '_movestart' : this.onMoveStart,
-            '_moveend'   : this.onMoveEnd,
-            '_resize'    : this._resetContainer
+            '_zoomstart': this.onZoomStart,
+            '_zoomend': this.onZoomEnd,
+            '_dragrotatestart': this.onDragRotateStart,
+            '_dragrotateend': this.onDragRotateEnd,
+            '_movestart': this.onMoveStart,
+            '_moveend': this.onMoveEnd,
+            '_resize': this._resetContainer
         };
     }
 
@@ -210,12 +219,12 @@ E4Layer.registerRenderer('dom', class {
         }
         //this._ec.clear();
         const map = this.getMap(),
-          center = map.getCenter(),
-          zoom = map.getZoom(),
-          pitch = map.getPitch(),
-          bearing = map.getBearing();
+            center = map.getCenter(),
+            zoom = map.getZoom(),
+            pitch = map.getPitch(),
+            bearing = map.getBearing();
         const ecMaptalks = this._ecMaptalks;
-        ecMaptalks.setCenter([center.x,center.y]);
+        ecMaptalks.setCenter([center.x, center.y]);
         ecMaptalks.setZoom(zoom);
         ecMaptalks.setPitch(pitch);
         ecMaptalks.setBearing(bearing);
