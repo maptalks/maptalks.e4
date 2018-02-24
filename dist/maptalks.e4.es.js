@@ -94,6 +94,7 @@ E4Layer.registerRenderer('dom', function () {
             this._prepareECharts();
             this._ec.setOption(this.layer._ecOptions, false);
             this._ecMaptalks = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
+            this._ecMaptalks.removeBaseLayer();
             var _additionalLayer = this.layer.getAdditionalLayer();
             if (_additionalLayer) {
                 this._ecMaptalks.removeBaseLayer();

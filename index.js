@@ -84,11 +84,11 @@ E4Layer.registerRenderer('dom', class {
             this._prepareECharts();
             this._ec.setOption(this.layer._ecOptions, false);
             this._ecMaptalks = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
+            this._ecMaptalks.removeBaseLayer();
             const _additionalLayer = this.layer.getAdditionalLayer();
             if(_additionalLayer){
                 this._ecMaptalks.removeBaseLayer();
                 this._ecMaptalks.setBaseLayer(_additionalLayer);
-                // this._ecMaptalks.addLayer(_additionalLayer);
             } 
         }
         //resize 
