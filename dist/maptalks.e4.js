@@ -98,7 +98,8 @@ E4Layer.registerRenderer('dom', function () {
             this._ecMaptalks = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
             var _additionalLayer = this.layer.getAdditionalLayer();
             if (_additionalLayer) {
-                this._ecMaptalks.addLayer(_additionalLayer);
+                this._ecMaptalks.removeBaseLayer();
+                this._ecMaptalks.setBaseLayer(_additionalLayer);
             }
         } else if (this._isVisible()) {
                 this._ec.resize();
