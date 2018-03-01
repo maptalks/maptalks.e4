@@ -27,49 +27,23 @@
     <script>
 
         var map = new maptalks.Map("map", {
-            center: [109.20129, 34.360339],
-            zoom: 2,
+            center: [120.13066322374, 30.240018034923],
+            zoom: 14,
             attributionControl: {
                 'content': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
             }
         });
 
-        var wmslayer = new maptalks.WMSTileLayer('wmsl', {
-            'urlTemplate': 'http://117.36.75.134:6080/arcgis/services/LT/canyin/MapServer/WMSServer/wms',
-            'layers': 'canyin',
-            'version': '1.3.0',
-            'format': 'image/png',
-            'transparent': true,
-            //renderer:'gl'
-            'renderer': 'canvas',
-        });
+        $.getJSON('./assets/hanzou-tracks.json', function (data) {
 
-        map.addLayer(wmslayer);
-
-        //map.setPitch(50);
-        
-        //map.setBearing(-10);
-
-        $.getJSON('./assets/population.json', function (data) {
-            data = data.filter(function (dataItem) {
-                return dataItem[2] > 0;
-            }).map(function (dataItem) {
-                return [dataItem[0], dataItem[1], dataItem[2]];
-            });
-
+            var points = [].concat.apply([], data.map(function (track) {
+                return track.map(function (seg) {
+                    return seg.coord.concat([1]);
+                });
+            }));
+            
             const ecOption = {
-                visualMap: {
-                    show: false,
-                    max: 1000,
-                    calculable: true,
-                    realtime: false,
-                    inRange: {
-                        color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
-                    },
-                    outOfRange: {
-                        colorAlpha: 0
-                    }
-                },
+                animation: true,
                 maptalks2D: {
                 },
                 maptalks3D: {
@@ -93,15 +67,23 @@
                         }
                     }
                 },
+                visualMap: {
+                    show: false,
+                    top: 'top',
+                    min: 0,
+                    max: 5,
+                    seriesIndex: 0,
+                    calculable: true,
+                    inRange: {
+                        color: ['blue', 'blue', 'green', 'yellow', 'red']
+                    }
+                },
                 series: [{
-                    type: 'bar3D',
-                    coordinateSystem: 'maptalks3D',
-                    shading: 'lambert',
-                    minHeight: 0.1,
-                    barSize: 0.1,
-                    data: data,
-                    silent: true,
-                    animationEasingUpdate: 2000
+                    type: 'heatmap',
+                    coordinateSystem: 'maptalks2D',
+                    data: points,
+                    pointSize: 5,
+                    blurSize: 6
                 }]
             };
 
