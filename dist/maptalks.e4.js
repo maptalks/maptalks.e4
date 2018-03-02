@@ -97,8 +97,11 @@ E4Layer.registerRenderer('dom', function () {
             this._ec.setOption(this.layer._ecOptions, false);
             this._ecMaptalks3D = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
             this._ecMaptalks2D = this._ec.getModel().getComponent('maptalks2D').getMaptalks();
-            if (this._ecMaptalks3D) {
+            if (this._ecMaptalks3D && this.layer.options['removeBaseLayer']) {
                 this._ecMaptalks3D.removeBaseLayer();
+            }
+            if (this._ecMaptalks2D && this.layer.options['removeBaseLayer']) {
+                this._ecMaptalks2D.removeBaseLayer();
             }
         } else if (this._isVisible()) {
                 this._ec.resize();
@@ -188,13 +191,6 @@ E4Layer.registerRenderer('dom', function () {
             }
         });
 
-        var maptalks2DView = echarts.extendComponentView({
-            type: 'maptalks2D',
-            render: function render(maptalksModel, ecModel, api) {
-                var ss = '';
-            }
-        });
-
         echarts.registerCoordinateSystem('maptalks2D', maptalks2DCoordSys);
     };
 
@@ -212,7 +208,9 @@ E4Layer.registerRenderer('dom', function () {
         Maptalks2DCoorSys.dimensions = Maptalks2DCoorSys.prototype.dimensions;
 
         Maptalks2DCoorSys.create = function (ecModel, api) {
+
             var maptalks2dCoordSys;
+
             ecModel.eachComponent('maptalks2D', function (maptalks2DModel) {
                 maptalks2DModel.map = map;
                 maptalks2DModel.coordinateSystem = maptalks2dCoordSys = new Maptalks2DCoorSys(map, api);
@@ -295,7 +293,6 @@ E4Layer.registerRenderer('dom', function () {
         if (this._container && this._container.style.display === 'none') {
             return;
         }
-
         var map = this.getMap(),
             center = map.getCenter(),
             zoom = map.getZoom(),

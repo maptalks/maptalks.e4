@@ -85,8 +85,11 @@ E4Layer.registerRenderer('dom', class {
             this._ec.setOption(this.layer._ecOptions, false);
             this._ecMaptalks3D = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
             this._ecMaptalks2D = this._ec.getModel().getComponent('maptalks2D').getMaptalks();
-            if (this._ecMaptalks3D) {
+            if (this._ecMaptalks3D && this.layer.options['removeBaseLayer']) {
                 this._ecMaptalks3D.removeBaseLayer();
+            }
+            if (this._ecMaptalks2D && this.layer.options['removeBaseLayer']) {
+                this._ecMaptalks2D.removeBaseLayer();
             }
         }
         //resize 
@@ -179,14 +182,7 @@ E4Layer.registerRenderer('dom', class {
                 center: [104.114129, 37.550339],
                 zoom: 5,
             }
-        })
-        //2dview
-        const maptalks2DView = echarts.extendComponentView({
-            type: 'maptalks2D',
-            render: function (maptalksModel, ecModel, api) {
-                const ss = '';
-            }
-        })
+        });
         //
         echarts.registerCoordinateSystem('maptalks2D', maptalks2DCoordSys); // Action
     }
@@ -206,13 +202,15 @@ E4Layer.registerRenderer('dom', class {
 
         Maptalks2DCoorSys.prototype.dimensions = ['lng', 'lat'];
 
-        Maptalks2DCoorSys.dimensions  = Maptalks2DCoorSys.prototype.dimensions;
+        Maptalks2DCoorSys.dimensions = Maptalks2DCoorSys.prototype.dimensions;
 
         Maptalks2DCoorSys.create = function (ecModel, api) {
+
             var maptalks2dCoordSys;
+
             ecModel.eachComponent('maptalks2D', function (maptalks2DModel) {
                 maptalks2DModel.map = map;
-                maptalks2DModel.coordinateSystem = maptalks2dCoordSys = new Maptalks2DCoorSys(map,api);
+                maptalks2DModel.coordinateSystem = maptalks2dCoordSys = new Maptalks2DCoorSys(map, api);
             });
             //
             ecModel.eachSeries(function (seriesModel) {
@@ -220,6 +218,7 @@ E4Layer.registerRenderer('dom', class {
                     seriesModel.coordinateSystem = maptalks2dCoordSys;
                 }
             });
+
         }
 
         maptalks.Util.extend(Maptalks2DCoorSys.prototype, {
@@ -298,7 +297,6 @@ E4Layer.registerRenderer('dom', class {
         if (this._container && this._container.style.display === 'none') {
             return;
         }
-        //this._ec.clear();
         const map = this.getMap(),
             center = map.getCenter(),
             zoom = map.getZoom(),
