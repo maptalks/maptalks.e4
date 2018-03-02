@@ -34,17 +34,24 @@
             }
         });
 
-        var wmslayer = new maptalks.WMSTileLayer('wmsl', {
-            'urlTemplate': 'http://117.36.75.134:6080/arcgis/services/LT/canyin/MapServer/WMSServer/wms',
-            'layers': 'canyin',
-            'version': '1.3.0',
-            'format': 'image/png',
-            'transparent': true,
-            //renderer:'gl'
-            'renderer': 'canvas',
+        //var wmslayer = new maptalks.WMSTileLayer('wmsl', {
+        //    'urlTemplate': 'http://117.36.75.134:6080/arcgis/services/LT/canyin/MapServer/WMSServer/wms',
+        //    'layers': 'canyin',
+        //    'version': '1.3.0',
+        //    'format': 'image/png',
+        //    'transparent': true,
+        //    //renderer:'gl'
+        //    'renderer': 'canvas',
+        //});
+
+        //map.addLayer(wmslayer);
+
+        var tileLayer = new maptalks.TileLayer('base', {
+            urlTemplate: 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            subdomains: ['a', 'b', 'c', 'd']
         });
 
-        map.addLayer(wmslayer);
+        map.addLayer(tileLayer);
 
         //map.setPitch(50);
         
@@ -56,7 +63,7 @@
             }).map(function (dataItem) {
                 return [dataItem[0], dataItem[1], dataItem[2]];
             });
-
+            //
             const ecOption = {
                 visualMap: {
                     show: false,
@@ -69,8 +76,6 @@
                     outOfRange: {
                         colorAlpha: 0
                     }
-                },
-                maptalks2D: {
                 },
                 maptalks3D: {
                     boxHeight: 50,
@@ -104,9 +109,8 @@
                     animationEasingUpdate: 2000
                 }]
             };
-
+            //
             var e4Layer = new maptalks.E4Layer('e4', ecOption, { hideOnZooming: false, hideOnRotating: false, hideOnMoving: false , removeBaseLayer:true }).addTo(map);
-
         });
 
 

@@ -28,15 +28,15 @@
 
         var map = new maptalks.Map("map", {
             center: [120.13066322374, 30.240018034923],
-            zoom: 14,
-            baseLayer: new maptalks.TileLayer('base', {
-                urlTemplate: 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-                subdomains: ['a', 'b', 'c', 'd'],
-                attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
-            })
+            zoom: 14
         });
 
-        
+        var tileLayer = new maptalks.TileLayer('base', {
+            urlTemplate: 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            subdomains: ['a', 'b', 'c', 'd']
+        });
+
+        map.addLayer(tileLayer);
 
         $.getJSON('./assets/hanzou-tracks.json', function (data) {
 
@@ -49,27 +49,6 @@
             const ecOption = {
                 animation: true,
                 maptalks2D: {
-                },
-                maptalks3D: {
-                    boxHeight: 50,
-                    // altitudeScale: 1e2,
-                    postEffect: {
-                        enable: true,
-                        screenSpaceAmbientOcclusion: {
-                            enable: true,
-                            radius: 2
-                        }
-                    },
-                    light: {
-                        main: {
-                            intensity: 2,
-                            shadow: true,
-                            shadowQuality: 'high'
-                        },
-                        ambient: {
-                            intensity: 0.
-                        }
-                    }
                 },
                 visualMap: {
                     show: false,
@@ -91,7 +70,7 @@
                 }]
             };
 
-            var e4Layer = new maptalks.E4Layer('e4', ecOption, { hideOnZooming: false, hideOnRotating: false, hideOnMoving: false }).addTo(map);
+            var e4Layer = new maptalks.E4Layer('e4', ecOption, { hideOnZooming: false, hideOnRotating: false, hideOnMoving: false, removeBaseLayer: true }).addTo(map);
 
         });
 

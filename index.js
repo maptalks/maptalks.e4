@@ -80,11 +80,13 @@ E4Layer.registerRenderer('dom', class {
         }
         //init echart
         if (!this._ec) {
-            this._ec = echarts.init(this._container);
             this._prepareECharts();
+            this._ec = echarts.init(this._container);
             this._ec.setOption(this.layer._ecOptions, false);
-            this._ecMaptalks3D = this._ec.getModel().getComponent('maptalks3D').getMaptalks();
-            this._ecMaptalks2D = this._ec.getModel().getComponent('maptalks2D').getMaptalks();
+            const maptalks3DComponent = this._ec.getModel().getComponent('maptalks3D');
+            const maptalks2DComponent = this._ec.getModel().getComponent('maptalks2D');
+            this._ecMaptalks3D = maptalks3DComponent ? maptalks3DComponent.getMaptalks() : null;
+            this._ecMaptalks2D = maptalks2DComponent ? maptalks2DComponent.getMaptalks() : null;
             if (this._ecMaptalks3D && this.layer.options['removeBaseLayer']) {
                 this._ecMaptalks3D.removeBaseLayer();
             }
@@ -163,13 +165,19 @@ E4Layer.registerRenderer('dom', class {
             zoom = map.getZoom(),
             pitch = map.getPitch(),
             bearing = map.getBearing();
-        //1.register maptalks3D
-        if (!ecOptions.maptalks3D)
-            ecOptions.maptalks3D = {};
-        ecOptions.maptalks3D.center = [center.x, center.y];
-        ecOptions.maptalks3D.zoom = zoom;
-        ecOptions.maptalks3D.pitch = pitch;
-        ecOptions.maptalks3D.bearing = bearing;
+        //
+        const series = ecOptions.series;
+        if (series) {
+            for (let i = series.length - 1; i >= 0; i--)
+                series[i]['animation'] = false;
+        }
+        //register maptalks3D
+        if (ecOptions.maptalks3D) {
+            ecOptions.maptalks3D.center = [center.x, center.y];
+            ecOptions.maptalks3D.zoom = zoom;
+            ecOptions.maptalks3D.pitch = pitch;
+            ecOptions.maptalks3D.bearing = bearing;
+        }
         //2dcoordsys
         const maptalks2DCoordSys = this._createMaptalks2DCoordinateSystem(map);
         //2dmodal
@@ -181,6 +189,12 @@ E4Layer.registerRenderer('dom', class {
             defaultOption: {
                 center: [104.114129, 37.550339],
                 zoom: 5,
+            }
+        });
+        //2drender
+        const maptalks2DView = echarts.extendComponentView({
+            type: 'maptalks2D',
+            render: function (maptalksModel2D, ecModel, api) {
             }
         });
         //
@@ -212,7 +226,7 @@ E4Layer.registerRenderer('dom', class {
                 maptalks2DModel.map = map;
                 maptalks2DModel.coordinateSystem = maptalks2dCoordSys = new Maptalks2DCoorSys(map, api);
             });
-            //
+
             ecModel.eachSeries(function (seriesModel) {
                 if (seriesModel.get('coordinateSystem') === 'maptalks2D') {
                     seriesModel.coordinateSystem = maptalks2dCoordSys;
@@ -303,20 +317,20 @@ E4Layer.registerRenderer('dom', class {
             pitch = map.getPitch(),
             bearing = map.getBearing();
         const ecMaptalks2D = this._ecMaptalks2D;
+        const ecMaptalks3D = this._ecMaptalks3D;
         if (ecMaptalks2D) {
             ecMaptalks2D.setCenter([center.x, center.y]);
             ecMaptalks2D.setZoom(zoom);
             ecMaptalks2D.setPitch(pitch);
             ecMaptalks2D.setBearing(bearing);
+            this._ec.resize();
         }
-        const ecMaptalks3D = this._ecMaptalks3D;
         if (ecMaptalks3D) {
             ecMaptalks3D.setCenter([center.x, center.y]);
             ecMaptalks3D.setZoom(zoom);
             ecMaptalks3D.setPitch(pitch);
             ecMaptalks3D.setBearing(bearing);
         }
-        this._ec.resize();
     }
 
     onZoomStart() {
