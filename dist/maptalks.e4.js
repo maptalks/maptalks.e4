@@ -315,6 +315,7 @@ E4Layer.registerRenderer('dom', function () {
             ecMaptalks3D.setPitch(pitch);
             ecMaptalks3D.setBearing(bearing);
         }
+        this._ec.resize();
     };
 
     _class.prototype.onZoomStart = function onZoomStart() {

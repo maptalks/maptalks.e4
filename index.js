@@ -318,6 +318,7 @@ E4Layer.registerRenderer('dom', class {
             ecMaptalks3D.setPitch(pitch);
             ecMaptalks3D.setBearing(bearing);
         }
+        this._ec.resize();
     }
 
     onZoomStart() {
