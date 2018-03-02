@@ -29,9 +29,11 @@
         var map = new maptalks.Map("map", {
             center: [120.13066322374, 30.240018034923],
             zoom: 14,
-            attributionControl: {
-                'content': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            }
+            baseLayer: new maptalks.TileLayer('base', {
+                urlTemplate: 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                subdomains: ['a', 'b', 'c', 'd'],
+                attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
+            })
         });
 
         $.getJSON('./assets/hanzou-tracks.json', function (data) {
@@ -41,7 +43,7 @@
                     return seg.coord.concat([1]);
                 });
             }));
-            
+
             const ecOption = {
                 animation: true,
                 maptalks2D: {
